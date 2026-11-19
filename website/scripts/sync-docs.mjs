@@ -26,7 +26,7 @@ import {
 } from 'node:fs';
 import { dirname, join, posix, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { docsDir, pages, sections } from '../docs.sync.config.mjs';
+import { docsDir, pages, sections, translations } from '../docs.sync.config.mjs';
 
 const websiteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outRoot = join(websiteRoot, 'content', 'docs');
@@ -37,10 +37,19 @@ const repoDocsDir = posix.normalize(docsDir).replace(/^\.\.\//, '');
 const gitBranch = 'main';
 const gitBlobBase = 'https://github.com/Fission-AI/OpenSpec/blob';
 
+const languagesBySlug = new Map();
+const translatedPages = translations.map(({ original, source, language, label }) => {
+  const slug = `${language}/${original}`;
+  languagesBySlug.set(original, { language, label, href: `/docs/${slug}` });
+  languagesBySlug.set(slug, { language: 'en', label: 'English', href: `/docs/${original}` });
+  return { source, slug, language };
+});
+const publishedPages = [...pages, ...translatedPages];
+
 // Map every source file -> its /docs route, so cross-doc Markdown links
 // resolve.
 const routeBySource = new Map();
-for (const page of pages) {
+for (const page of publishedPages) {
   const key = posix.normalize(page.source);
   if (!routeBySource.has(key)) {
     // An `index` slug (root or `<folder>/index`) serves its parent path.
@@ -164,10 +173,12 @@ function rewriteLinks(markdown, sourceRel) {
   });
 }
 
-function buildFrontmatter({ title, description, repoSource }) {
+function buildFrontmatter({ title, description, repoSource, language, alternateLanguage }) {
   const fm = [`title: ${yamlQuote(title)}`];
   if (description) fm.push(`description: ${yamlQuote(description)}`);
   fm.push(`githubSource: ${yamlQuote(repoSource)}`);
+  if (language) fm.push(`language: ${yamlQuote(language)}`);
+  if (alternateLanguage) fm.push(`alternateLanguage: ${JSON.stringify(alternateLanguage)}`);
   return `---\n${fm.join('\n')}\n---\n`;
 }
 
@@ -188,6 +199,8 @@ function generatePage(page) {
     title,
     description,
     repoSource,
+    language: page.language,
+    alternateLanguage: languagesBySlug.get(page.slug),
   });
 
   const outPath = join(outRoot, `${page.slug}.md`);
@@ -252,7 +265,7 @@ function main() {
   mkdirSync(outRoot, { recursive: true });
 
   let count = 0;
-  for (const page of pages) {
+  for (const page of publishedPages) {
     generatePage(page);
     count++;
   }
