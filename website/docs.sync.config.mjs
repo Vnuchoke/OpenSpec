@@ -181,3 +181,8 @@ export const sections = [
 /** Flat list of every published route (folder entries expanded recursively). */
 const expandEntry = (entry) => (entry.folder ? entry.pages.flatMap(expandEntry) : [entry]);
 export const pages = sections.flatMap((section) => section.pages.flatMap(expandEntry));
+
+// Translations are published alongside their originals, outside the English sidebar.
+export const translations = [
+  { original: 'installation', source: 'ru/start/installation.md', language: 'ru', label: 'Русский' },
+];
