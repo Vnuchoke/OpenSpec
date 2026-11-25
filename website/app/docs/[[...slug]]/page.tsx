@@ -40,6 +40,7 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
+  const { language, alternateLanguage } = page.data;
 
   return (
     <DocsPage
@@ -47,9 +48,19 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
       full={page.data.full}
       breadcrumb={{ enabled: true, includeRoot: false, includePage: false }}
     >
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+      <DocsTitle lang={language}>{page.data.title}</DocsTitle>
+      <DocsDescription lang={language}>{page.data.description}</DocsDescription>
       <div className="flex flex-row gap-2 items-center border-b pb-6">
+        {alternateLanguage && (
+          <a
+            className="text-sm underline underline-offset-4"
+            href={alternateLanguage.href}
+            hrefLang={alternateLanguage.language}
+            lang={alternateLanguage.language}
+          >
+            {alternateLanguage.label}
+          </a>
+        )}
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover
           markdownUrl={markdownUrl}
@@ -58,7 +69,7 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
           }`}
         />
       </div>
-      <DocsBody>
+      <DocsBody lang={language}>
         <MDX
           components={getMDXComponents({
             // this allows you to link to other pages with relative file paths

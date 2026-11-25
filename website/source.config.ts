@@ -12,9 +12,17 @@ export const docs = defineDocs({
   dir: 'content/docs',
   docs: {
     // `githubSource` is injected by scripts/sync-docs.mjs and points at the
-    // canonical `docs/*.md` this page was generated from, so the "edit this
+    // canonical `docs-lab/` file this page was generated from, so the "edit this
     // page" link opens the real source rather than the generated mirror.
-    schema: pageSchema.extend({ githubSource: z.string().optional() }),
+    schema: pageSchema.extend({
+      githubSource: z.string().optional(),
+      language: z.string().optional(),
+      alternateLanguage: z.object({
+        language: z.string(),
+        label: z.string(),
+        href: z.string(),
+      }).optional(),
+    }),
     postprocess: {
       includeProcessedMarkdown: {
         mdxAsPlaceholder: ['Mermaid', 'Callout', 'FileSteps', 'Accordions', 'Accordion'],
